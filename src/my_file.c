@@ -114,18 +114,17 @@ int _my_dir_traversal_dir(const char* dirPath, const char* relativePath, size_t 
     while (findResult == 0) {
         char* childName = _my_dir_current_file_name(dir);
         char* childPath = _my_dir_current_file_path(dir);
-        if (S_ISDIR(dir->st.st_mode)) {
+
+        if (S_ISLNK(dir->st.st_mode)) {
+            // ignore symbolic link file or directory
+        }
+        else if (S_ISDIR(dir->st.st_mode)) {
             snprintf((char*)relativePath + relPathLen, MAX_PATH_CHAR_COUNT - relPathLen, "%s%c", childName, ZIP_PATH_SEPARATOR);
             err = _my_dir_traversal_dir(childPath, relativePath, relPathLen + strlen(childName) + 1, &dir->st, cb, param);
         }
         else if (S_ISREG(dir->st.st_mode)) {
             my_strncpy((char*)relativePath + relPathLen, childName, MAX_PATH_CHAR_COUNT - relPathLen);
             err = cb(childPath, relativePath, &dir->st, param);
-        }
-        else if (S_ISLNK(dir->st.st_mode)) {
-            // TODO: handle symbolic link files in linux
-            //err = ERR_NZ_DIR_TRAVERSAL_FILE_NOTFOUND;
-            //break;
         }
         else {
             // ignore all other cases

@@ -29,7 +29,8 @@ typedef struct _stat NATIVE_FILE_STAT;
 
 #define S_ISDIR(mode) (((mode) & _S_IFMT) == _S_IFDIR)
 #define S_ISREG(mode) (((mode) & _S_IFMT) == _S_IFREG)
-#define S_ISLNK(mode) 0 // no symbolic link files in Windows
+#define	_S_IFLNK	0x0400	/* Symbolic link.  */
+#define S_ISLNK(mode) (((mode) & _S_IFLNK) == _S_IFLNK)
 
 #define mkdir(path, mode) _mkdir(path)
 

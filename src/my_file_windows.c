@@ -85,6 +85,13 @@ void _my_dir_findNext_copyStat(MyDir* pDir) {
         pDir->st.st_size = ((size_t)pDir->info.nFileSizeHigh << 32) | pDir->info.nFileSizeLow;
     }
 
+    if (pDir->info.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
+        if (pDir->info.dwReserved0 == IO_REPARSE_TAG_SYMLINK) {
+            // is symbolic link file or directory
+            pDir->st.st_mode |= _S_IFLNK;
+        }
+    }
+
     ULARGE_INTEGER ull;
     ull.LowPart = pDir->info.ftLastWriteTime.dwLowDateTime;
     ull.HighPart = pDir->info.ftLastWriteTime.dwHighDateTime;
