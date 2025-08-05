@@ -337,3 +337,11 @@ future.cancel();
   - path must NOT starts with `/`
   - path must NOT ends with `/`
   - e.g. `dirA/fileB.txt`
+
+
+## Known issues
+
+- The following information are ignored whe zipping and unzipping:
+  - All <u>symbolic link</u> files or directories are ignored.
+  - Hard link file is not support
+  - Unix file permission information (e.g. -rwxrw-r--) are ignored
