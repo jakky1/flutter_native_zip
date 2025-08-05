@@ -2,6 +2,7 @@
 
 #include <stdint.h>
 #include <sys/stat.h>
+#include <stddef.h>
 
 
 #if _WIN32
