@@ -9,7 +9,7 @@ int _my_dir_mkdir(const char* path) {
 }
 
 int my_file_stat(const char* path, NATIVE_FILE_STAT* st) {
-    return stat(path, st);
+    return lstat(path, st);
 }
 
 char* _my_dir_current_file_name(MyDir* pDir) {
@@ -37,7 +37,7 @@ int _my_dir_findNext(MyDir* pDir) {
     pDir->_nowFilepath[pDir->_dirPathLen] = '/';
     strcpy(pDir->_nowFilepath + pDir->_dirPathLen + 1, pDir->info->d_name);
 
-    stat(pDir->_nowFilepath, &pDir->st);
+    lstat(pDir->_nowFilepath, &pDir->st);
     pDir->_nowFilepath[pDir->_dirPathLen] = 0; // set _nowFilepath = _dirPath
 
     return 0;
