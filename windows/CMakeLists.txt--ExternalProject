@@ -1,0 +1,63 @@
+# The Flutter tooling requires that developers have a version of Visual Studio
+# installed that includes CMake 3.14 or later. You should not increase this
+# version, as doing so will cause the plugin to fail to compile for some
+# customers of the plugin.
+cmake_minimum_required(VERSION 3.14)
+
+# Project-level configuration.
+set(PROJECT_NAME "native_zip")
+project(${PROJECT_NAME} LANGUAGES CXX)
+
+# Invoke the build for native code shared with the other target platforms.
+# This can be changed to accommodate different builds.
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../src" "${CMAKE_CURRENT_BINARY_DIR}/shared")
+
+set(PLUGIN_NAME "native_zip")
+include(ExternalProject)
+cmake_policy(SET CMP0135 NEW)
+
+set(myExtLibsPrefix ${CMAKE_BINARY_DIR}/packages_src)
+
+message(NOTICE "[zlib] downloading source code & build, please wait...")
+ExternalProject_Add(zlib
+  URL https://zlib.net/zlib-1.3.1.tar.gz
+  PREFIX ${myExtLibsPrefix}/zlib
+  #INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${ZLIB_BINRARY_DIR}/zlib.dll D:/000___MyData/000_MyCode/workspace_flutter/native_zip/example/build/windows/x64/runner/Release
+)
+
+message(NOTICE "[libzip] downloading source code & build, please wait...")
+ExternalProject_Add(libzip
+  URL https://libzip.org/download/libzip-1.11.3.tar.xz
+  PREFIX ${myExtLibsPrefix}/libzip
+  #INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${LIBZIP_BINRARY_DIR}/zip.dll D:/000___MyData/000_MyCode/workspace_flutter/native_zip/example/build/windows/x64/runner/Release
+)
+
+set(ZLIB_INCLUDE_DIR ${myExtLibsPrefix}/zlib/src/zlib ${myExtLibsPrefix}/zlib/src/zlib-build) # zlib.h
+set(ZLIB_BINRARY_DIR ${myExtLibsPrefix}/zlib/src/zlib-build/Release) # zlib.lib , zlib.dll
+set(LIBZIP_INCLUDE_DIR ${myExtLibsPrefix}/libzip/src/libzip/lib) # zip.h
+set(LIBZIP_BUILD_DIR ${myExtLibsPrefix}/libzip/src/libzip-build) # zipconf.h
+set(LIBZIP_BINRARY_DIR ${myExtLibsPrefix}/libzip/src/libzip-build/lib/Release) # zip.dll, zip.lib
+
+# add 'include' folder
+target_include_directories(${PLUGIN_NAME} PRIVATE ${ZLIB_INCLUDE_DIR})
+target_include_directories(${PLUGIN_NAME} PRIVATE ${LIBZIP_INCLUDE_DIR} ${LIBZIP_BUILD_DIR})
+
+
+# link 'lib' files
+target_link_libraries(${PLUGIN_NAME} PRIVATE ${ZLIB_BINRARY_DIR}/zlib.lib)
+target_link_libraries(${PLUGIN_NAME} PRIVATE ${LIBZIP_BINRARY_DIR}/zip.lib)
+
+
+# List of absolute paths to libraries that should be bundled with the plugin.
+# This list could contain prebuilt libraries, or libraries created by an
+# external build triggered from this build file.
+set(native_zip_bundled_libraries
+  # Defined in ../src/CMakeLists.txt.
+  # This can be changed to accommodate different builds.
+  $<TARGET_FILE:native_zip>
+
+  ${ZLIB_BINRARY_DIR}/zlib.dll  # Jacky, copy dll to exe dir
+  ${LIBZIP_BINRARY_DIR}/zip.dll # Jacky, copy dll to exe dir
+
+  PARENT_SCOPE
+)

@@ -1,0 +1,282 @@
+# The Flutter tooling requires that developers have a version of Visual Studio
+# installed that includes CMake 3.14 or later. You should not increase this
+# version, as doing so will cause the plugin to fail to compile for some
+# customers of the plugin.
+cmake_minimum_required(VERSION 3.14)
+
+# Project-level configuration.
+set(PROJECT_NAME "native_zip")
+#set(CMAKE_INSTALL_PREFIX "D:/cmake")
+project(${PROJECT_NAME} LANGUAGES CXX)
+#set(CMAKE_INSTALL_PREFIX "D:/cmake")
+
+# Invoke the build for native code shared with the other target platforms.
+# This can be changed to accommodate different builds.
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../src" "${CMAKE_CURRENT_BINARY_DIR}/shared")
+
+# List of absolute paths to libraries that should be bundled with the plugin.
+# This list could contain prebuilt libraries, or libraries created by an
+# external build triggered from this build file.
+#[[
+set(native_zip_bundled_libraries
+  # Defined in ../src/CMakeLists.txt.
+  # This can be changed to accommodate different builds.
+  $<TARGET_FILE:native_zip>
+  PARENT_SCOPE
+)
+]]
+
+
+#[[
+set(PLUGIN_NAME "native_zip")
+set(myExtLibsPrefix ${CMAKE_BINARY_DIR}/packages_src)
+
+function (my_download_lib_src pkgName version url)
+  set(STAMP_FILE ${myExtLibsPrefix}/${pkgName}-${version}.stamp)
+  set(localZipFile ${myExtLibsPrefix}/${pkgName}.tar.gz)
+  set(extractDir ${myExtLibsPrefix}/${pkgName})
+
+  if(EXISTS ${STAMP_FILE})
+    message(NOTICE "[${pkgName}-${version}] already built")
+    return()
+  endif()
+
+  # download file
+  message(NOTICE "[${pkgName}-${version}] downloading source...")
+  file(DOWNLOAD ${url} ${localZipFile}
+    STATUS download_status
+    LOG download_log
+    #SHOW_PROGRESS
+    #EXPECTED_MD5 "abcdef1234567890abcdef1234567890"
+  )
+  list(GET download_status 0 status_code)
+  list(GET download_status 1 status_string)
+  if(status_code EQUAL 0)
+    message(NOTICE "[${pkgName}-${version}] download success. now building...")
+  else()
+    message(FATAL_ERROR "[${pkgName}] Download failed: ${status_string} #########################################################\nLog: ${download_log}")
+  endif()
+
+  file(ARCHIVE_EXTRACT INPUT "${localZipFile}" DESTINATION "${extractDir}") # unzip
+  add_subdirectory("${extractDir}/${pkgName}-${version}" "${extractDir}/build") # build 3rd-party library
+
+  file(TOUCH ${STAMP_FILE})
+  message(NOTICE "[${pkgName}-${version}] build success")
+endfunction()
+
+# download & build libraries
+set(ZLIB_VERSION "1.3.1")
+set(LIBZIP_VERSION "1.11.3")
+my_download_lib_src(zlib ${ZLIB_VERSION} "https://github.com/madler/zlib/releases/download/v${ZLIB_VERSION}/zlib-${ZLIB_VERSION}.tar.gz")
+set(ZLIB_INCLUDE_DIR ${myExtLibsPrefix}/zlib/zlib-${ZLIB_VERSION} ${myExtLibsPrefix}/zlib/build)
+set(ZLIB_LIBRARY ${myExtLibsPrefix}/zlib/build/Release/zlib.lib)
+#set(ZLIB_ROOT ${myExtLibsPrefix}/zlib/build/Release)
+#set(ZLIB_FOUND 1)
+my_download_lib_src(libzip ${LIBZIP_VERSION} "https://github.com/nih-at/libzip/releases/download/v${LIBZIP_VERSION}/libzip-${LIBZIP_VERSION}.tar.gz")
+#my_download_lib_src(zlib "1.3.1" "https://zlib.net/zlib-1.3.1.tar.gz") # this url cause download error when build apk in windows OS
+#my_download_lib_src(libzip ${LIBZIP_VERSION} "https://libzip.org/download/libzip-${LIBZIP_VERSION}.tar.xz") # this url cause download error when build apk in windows OS
+
+# add 'include' folder
+target_include_directories(${PROJECT_NAME} PRIVATE ${myExtLibsPrefix}/zlib/zlib-${ZLIB_VERSION}) # zlib.h
+target_include_directories(${PROJECT_NAME} PRIVATE ${myExtLibsPrefix}/zlib/build) # zconf.h
+target_include_directories(${PROJECT_NAME} PRIVATE ${myExtLibsPrefix}/libzip/libzip-${LIBZIP_VERSION}/lib) # zip.h
+target_include_directories(${PROJECT_NAME} PRIVATE ${myExtLibsPrefix}/libzip/build) # zipconf.h
+
+# linking *.lib module
+# add 'zlib.lib'
+message(NOTICE "try to find zlib in ${myExtLibsPrefix}/zlib/build/Release")
+#find_library(FOUND_LIB_ZLIB zlib PATHS ${myExtLibsPrefix}/zlib/build/Release)
+#target_link_libraries(${PLUGIN_NAME} PRIVATE ${FOUND_LIB_ZLIB})
+target_link_libraries(${PLUGIN_NAME} PRIVATE ${myExtLibsPrefix}/zlib/build/Release/zlib.lib)
+
+# add 'zip.lib'
+#find_library(FOUND_LIB_ZIP zip PATHS ${myExtLibsPrefix}/libzip/build/lib/Release)
+#target_link_libraries(${PLUGIN_NAME} PRIVATE ${FOUND_LIB_ZIP})
+target_link_libraries(${PLUGIN_NAME} PRIVATE ${myExtLibsPrefix}/libzip/build/lib/Release/zip.lib)
+#]]
+
+
+
+
+#[[
+set(NUGET_URL https://dist.nuget.org/win-x86-commandline/v5.10.0/nuget.exe)
+set(NUGET_SHA256 852b71cc8c8c2d40d09ea49d321ff56fd2397b9d6ea9f96e532530307bbbafd3)
+
+# download nuget.exe
+find_program(NUGET nuget)
+if(NOT NUGET)
+  set(NUGET ${CMAKE_BINARY_DIR}/nuget.exe)
+
+  if (NOT EXISTS ${NUGET})
+    message(NOTICE "Nuget is not installed.\nStart downloading nuget. Please wait...")
+    file(DOWNLOAD ${NUGET_URL} ${NUGET})
+  endif()
+
+  file(SHA256 ${NUGET} NUGET_DL_HASH)
+  if (NOT NUGET_DL_HASH STREQUAL NUGET_SHA256)
+    message(FATAL_ERROR "Integrity check for ${NUGET} failed.")
+  endif()
+  message(NOTICE "nuget.exe downloaded")
+endif()
+
+set (pkgDir ${CMAKE_BINARY_DIR}/packages)
+function (nuget_install_package pkgName pkgVersion)
+  if (NOT EXISTS ${pkgDir}/${pkgName})
+    message(NOTICE "nuget downloading package ${pkgName}, please wait...")
+    execute_process(COMMAND ${NUGET} install ${pkgName} -Version ${pkgVersion} -ExcludeVersion -OutputDirectory ${pkgDir} ENCODING AUTO)
+    message(NOTICE "nuget installing package ${pkgName}:${pkgVersion} successfully")
+  else ()
+    message(NOTICE "package ${pkgName}:${pkgVersion} found")
+  endif()
+endfunction()
+
+# nuget install packages
+nuget_install_package(libzip-c "1.11.3.1")
+
+
+# add 'include' folder
+#target_link_libraries(${PLUGIN_NAME} PRIVATE ${CMAKE_BINARY_DIR}/packages/Microsoft.Web.WebView2/build/native/Microsoft.Web.WebView2.targets)
+target_include_directories(${PLUGIN_NAME} PRIVATE ${CMAKE_BINARY_DIR}/packages/libzip-c/include)
+
+
+# add 'zip.lib'
+find_library(FOUND_LIB_ZIP zip PATHS ${CMAKE_BINARY_DIR}/packages/libzip-c/lib/windows/x64/release)
+target_link_libraries(${PLUGIN_NAME} PRIVATE ${FOUND_LIB_ZIP})
+
+# add 'zlib.lib'
+find_library(FOUND_LIB_ZLIB zlib PATHS ${CMAKE_BINARY_DIR}/packages/libzip-c/lib/windows/x64/release)
+target_link_libraries(${PLUGIN_NAME} PRIVATE ${FOUND_LIB_ZLIB})
+
+set(native_zip_bundled_libraries
+  # Defined in ../src/CMakeLists.txt.
+  # This can be changed to accommodate different builds.
+  $<TARGET_FILE:native_zip>
+
+  # copy *.dll files
+  ${CMAKE_BINARY_DIR}/packages/libzip-c/bin/windows/x64/release/zip.dll   # Jacky
+  ${CMAKE_BINARY_DIR}/packages/libzip-c/bin/windows/x64/release/zlib1.dll # Jacky
+  ${CMAKE_BINARY_DIR}/packages/libzip-c/bin/windows/x64/release/bz2.dll   # Jacky
+
+  PARENT_SCOPE
+)
+]]
+
+
+# 使用 FetchContent ----------------------------------------------------------------
+
+#[[
+include(FetchContent)
+cmake_policy(SET CMP0135 NEW)
+
+# 下載並編譯 zlib
+message(NOTICE "[zlib] downloading source code & build, please wait...")
+FetchContent_Declare(
+  zlib
+  URL https://zlib.net/zlib-1.3.1.tar.gz
+)
+FetchContent_MakeAvailable(zlib)
+message(NOTICE "[zlib] build successfully")
+# zlib 預設會產生 zlibstatic target，使用它來連結
+target_link_libraries(${PROJECT_NAME} PRIVATE zlibstatic)
+# 加入 zlib 的 include 目錄
+target_include_directories(${PROJECT_NAME} PRIVATE ${zlib_SOURCE_DIR})
+
+#[ [
+# 逐一檢查變數名稱是否以 "zlib_" 開頭，並列印名稱與內容
+get_cmake_property(_variableNames VARIABLES)
+foreach(_variableName ${_variableNames})
+  string(FIND "${_variableName}" "ZLIB_" _pos)
+  if(_pos EQUAL 0)
+    message(NOTICE "${_variableName} = [${${_variableName}}]")
+  endif()
+endforeach()
+#] ]
+
+#message(NOTICE "zlib_SOURCE_DIR: ${zlib_SOURCE_DIR}")
+set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+set(ZLIB_LIBRARY ${})
+
+#set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+#ZLIB_LIBRARY ZLIB_INCLUDE_DIR
+
+
+# 下載並編譯 libzip，並設定依賴 zlib
+message(NOTICE "[libzip] downloading source code & build, please wait...")
+FetchContent_Declare(
+  libzip
+  URL https://libzip.org/download/libzip-1.11.3.tar.xz
+)
+message(NOTICE "~~~~~~~~ 0")
+FetchContent_MakeAvailable(libzip)
+message(NOTICE "~~~~~~~~ 1")
+FetchContent_GetProperties(libzip)
+message(NOTICE "~~~~~~~~ 2")
+if(NOT libzip_POPULATED)
+message(NOTICE "~~~~~~~~ 3")
+  FetchContent_Populate(libzip)
+message(NOTICE "~~~~~~~~ 4")
+  add_subdirectory(${libzip_SOURCE_DIR} ${libzip_BINARY_DIR})
+message(NOTICE "~~~~~~~~ 5")
+endif()
+message(NOTICE "[libzip] build successfully")
+
+message(NOTICE "libzip_SOURCE_DIR: ${libzip_SOURCE_DIR}")
+target_include_directories(${PROJECT_NAME} PRIVATE ${libzip_SOURCE_DIR}/lib)
+
+# 連結 libzip
+target_link_libraries(${PROJECT_NAME} PRIVATE zip)
+#]]
+
+
+
+
+# 使用 ExternalProject ----------------------------------------------------------------
+set(PLUGIN_NAME "native_zip")
+set(myExtLibsPrefix ${CMAKE_BINARY_DIR}/packages_src)
+
+include(ExternalProject)
+cmake_policy(SET CMP0135 NEW)
+
+message(NOTICE "[zlib] downloading source code & build, please wait...")
+ExternalProject_Add(zlib
+  URL https://zlib.net/zlib-1.3.1.tar.gz
+  PREFIX ${myExtLibsPrefix}/zlib
+  #INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${ZLIB_BINRARY_DIR}/zlib.dll D:/000___MyData/000_MyCode/workspace_flutter/native_zip/example/build/windows/x64/runner/Release
+)
+
+message(NOTICE "[libzip] downloading source code & build, please wait...")
+ExternalProject_Add(libzip
+  URL https://libzip.org/download/libzip-1.11.3.tar.xz
+  PREFIX ${myExtLibsPrefix}/libzip
+  #INSTALL_COMMAND ${CMAKE_COMMAND} -E copy ${LIBZIP_BINRARY_DIR}/zip.dll D:/000___MyData/000_MyCode/workspace_flutter/native_zip/example/build/windows/x64/runner/Release
+)
+
+set(ZLIB_INCLUDE_DIR ${myExtLibsPrefix}/zlib/src/zlib ${myExtLibsPrefix}/zlib/src/zlib-build) # zlib.h
+set(ZLIB_BINRARY_DIR ${myExtLibsPrefix}/zlib/src/zlib-build/Release) # zlib.lib , zlib.dll
+set(LIBZIP_INCLUDE_DIR ${myExtLibsPrefix}/libzip/src/libzip/lib) # zip.h
+set(LIBZIP_BUILD_DIR ${myExtLibsPrefix}/libzip/src/libzip-build) # zipconf.h
+set(LIBZIP_BINRARY_DIR ${myExtLibsPrefix}/libzip/src/libzip-build/lib/Release) # zip.dll, zip.lib
+
+# add 'include' folder
+target_include_directories(${PLUGIN_NAME} PRIVATE ${ZLIB_INCLUDE_DIR})
+target_include_directories(${PLUGIN_NAME} PRIVATE ${LIBZIP_INCLUDE_DIR} ${LIBZIP_BUILD_DIR})
+
+
+# link 'lib' files
+target_link_libraries(${PLUGIN_NAME} PRIVATE ${ZLIB_BINRARY_DIR}/zlib.lib)
+target_link_libraries(${PLUGIN_NAME} PRIVATE ${LIBZIP_BINRARY_DIR}/zip.lib)
+
+
+# List of absolute paths to libraries that should be bundled with the plugin.
+# This list could contain prebuilt libraries, or libraries created by an
+# external build triggered from this build file.
+set(native_zip_bundled_libraries
+  # Defined in ../src/CMakeLists.txt.
+  # This can be changed to accommodate different builds.
+  $<TARGET_FILE:native_zip>
+
+  ${ZLIB_BINRARY_DIR}/zlib.dll  # Jacky, copy dll to exe dir
+  ${LIBZIP_BINRARY_DIR}/zip.dll # Jacky, copy dll to exe dir
+
+  PARENT_SCOPE
+)

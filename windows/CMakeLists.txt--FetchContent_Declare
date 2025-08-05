@@ -1,0 +1,71 @@
+# The Flutter tooling requires that developers have a version of Visual Studio
+# installed that includes CMake 3.14 or later. You should not increase this
+# version, as doing so will cause the plugin to fail to compile for some
+# customers of the plugin.
+cmake_minimum_required(VERSION 3.14)
+
+# Project-level configuration.
+set(PROJECT_NAME "native_zip")
+#set(CMAKE_INSTALL_PREFIX "D:/cmake")
+project(${PROJECT_NAME} LANGUAGES CXX)
+#set(CMAKE_INSTALL_PREFIX "D:/cmake")
+
+# Invoke the build for native code shared with the other target platforms.
+# This can be changed to accommodate different builds.
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../src" "${CMAKE_CURRENT_BINARY_DIR}/shared")
+
+
+#[[ using FetchContent cause the following error:
+
+CMake Error at D:/native_zip/example/build/windows/x64/_deps/libzip-src/CMakeLists.txt:341 (file):
+  file RELATIVE_PATH must be passed a full path to the directory:
+  $<TARGET_FILE_DIR:native_zip_example>
+#]]
+
+include(FetchContent)
+cmake_policy(SET CMP0135 NEW)
+
+# 下載並編譯 zlib
+message(NOTICE "[zlib] downloading source code & build, please wait...")
+FetchContent_Declare(
+  zlib
+  URL https://zlib.net/zlib-1.3.1.tar.gz
+)
+FetchContent_MakeAvailable(zlib)
+message(NOTICE "[zlib] build successfully")
+
+# 加入 zlib 的 include 目錄
+target_include_directories(${PROJECT_NAME} PRIVATE ${zlib_SOURCE_DIR} ${zlib_BINARY_DIR}) # zlib.h , zconf.h
+
+# zlib 預設會產生 zlibstatic target，使用它來連結
+target_link_libraries(${PROJECT_NAME} PRIVATE zlibstatic)
+
+
+message(NOTICE "zlib_SOURCE_DIR: ${zlib_SOURCE_DIR}")
+set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+set(ZLIB_LIBRARY ${})
+
+#set(ZLIB_INCLUDE_DIR ${zlib_SOURCE_DIR})
+#ZLIB_LIBRARY ZLIB_INCLUDE_DIR
+
+
+# 下載並編譯 libzip，並設定依賴 zlib
+message(NOTICE "[libzip] downloading source code & build, please wait...")
+FetchContent_Declare(
+  libzip
+  URL https://libzip.org/download/libzip-1.11.3.tar.xz
+)
+FetchContent_MakeAvailable(libzip)
+message(NOTICE "[libzip] build successfully")
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${libzip_SOURCE_DIR}/lib)
+
+# 連結 libzip
+target_link_libraries(${PROJECT_NAME} PRIVATE zip)
+
+set(native_zip_bundled_libraries
+  # Defined in ../src/CMakeLists.txt.
+  # This can be changed to accommodate different builds.
+  $<TARGET_FILE:native_zip>
+  PARENT_SCOPE
+)

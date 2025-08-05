@@ -1,0 +1,102 @@
+# The Flutter tooling requires that developers have a version of Visual Studio
+# installed that includes CMake 3.14 or later. You should not increase this
+# version, as doing so will cause the plugin to fail to compile for some
+# customers of the plugin.
+cmake_minimum_required(VERSION 3.14)
+
+# Project-level configuration.
+set(PROJECT_NAME "native_zip")
+#set(CMAKE_INSTALL_PREFIX "D:/cmake")
+project(${PROJECT_NAME} LANGUAGES CXX)
+#set(CMAKE_INSTALL_PREFIX "D:/cmake")
+
+# Invoke the build for native code shared with the other target platforms.
+# This can be changed to accommodate different builds.
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../src" "${CMAKE_CURRENT_BINARY_DIR}/shared")
+
+
+#[[ building main program cause error:
+fatal error LNK1181: 無法開啟輸入檔 '..\..\..\packages_src\libzip\build\lib\Release\zip.lib'
+#]]
+
+set(PLUGIN_NAME "native_zip")
+set(myExtLibsPrefix ${CMAKE_BINARY_DIR}/packages_src)
+
+function (my_download_lib_src pkgName version url)
+  set(STAMP_FILE ${myExtLibsPrefix}/${pkgName}-${version}.stamp)
+  set(localZipFile ${myExtLibsPrefix}/${pkgName}.tar.gz)
+  set(extractDir ${myExtLibsPrefix}/${pkgName})
+
+  if(EXISTS ${STAMP_FILE})
+    message(NOTICE "[${pkgName}-${version}] already built")
+    return()
+  endif()
+
+  # download file
+  message(NOTICE "[${pkgName}-${version}] downloading source...")
+  file(DOWNLOAD ${url} ${localZipFile}
+    STATUS download_status
+    LOG download_log
+    #SHOW_PROGRESS
+    #EXPECTED_MD5 "abcdef1234567890abcdef1234567890"
+  )
+  list(GET download_status 0 status_code)
+  list(GET download_status 1 status_string)
+  if(status_code EQUAL 0)
+    message(NOTICE "[${pkgName}-${version}] download success. now building...")
+  else()
+    message(FATAL_ERROR "[${pkgName}] Download failed: ${status_string} #########################################################\nLog: ${download_log}")
+  endif()
+
+  file(ARCHIVE_EXTRACT INPUT "${localZipFile}" DESTINATION "${extractDir}") # unzip
+  add_subdirectory("${extractDir}/${pkgName}-${version}" "${extractDir}/build") # build 3rd-party library
+
+  file(TOUCH ${STAMP_FILE})
+  message(NOTICE "[${pkgName}-${version}] build success")
+endfunction()
+
+# download & build libraries
+set(ZLIB_VERSION "1.3.1")
+set(LIBZIP_VERSION "1.11.3")
+my_download_lib_src(zlib ${ZLIB_VERSION} "https://github.com/madler/zlib/releases/download/v${ZLIB_VERSION}/zlib-${ZLIB_VERSION}.tar.gz")
+set(ZLIB_INCLUDE_DIR ${myExtLibsPrefix}/zlib/zlib-${ZLIB_VERSION} ${myExtLibsPrefix}/zlib/build)
+set(ZLIB_LIBRARY ${myExtLibsPrefix}/zlib/build/Release/zlib.lib)
+#set(ZLIB_ROOT ${myExtLibsPrefix}/zlib/build/Release)
+#set(ZLIB_FOUND 1)
+my_download_lib_src(libzip ${LIBZIP_VERSION} "https://github.com/nih-at/libzip/releases/download/v${LIBZIP_VERSION}/libzip-${LIBZIP_VERSION}.tar.gz")
+#my_download_lib_src(zlib "1.3.1" "https://zlib.net/zlib-1.3.1.tar.gz") # this url cause download error when build apk in windows OS
+#my_download_lib_src(libzip ${LIBZIP_VERSION} "https://libzip.org/download/libzip-${LIBZIP_VERSION}.tar.xz") # this url cause download error when build apk in windows OS
+
+# add 'include' folder
+target_include_directories(${PROJECT_NAME} PRIVATE ${myExtLibsPrefix}/zlib/zlib-${ZLIB_VERSION}) # zlib.h
+target_include_directories(${PROJECT_NAME} PRIVATE ${myExtLibsPrefix}/zlib/build) # zconf.h
+target_include_directories(${PROJECT_NAME} PRIVATE ${myExtLibsPrefix}/libzip/libzip-${LIBZIP_VERSION}/lib) # zip.h
+target_include_directories(${PROJECT_NAME} PRIVATE ${myExtLibsPrefix}/libzip/build) # zipconf.h
+
+# linking *.lib module
+# add 'zlib.lib'
+message(NOTICE "try to find zlib in ${myExtLibsPrefix}/zlib/build/Release")
+#find_library(FOUND_LIB_ZLIB zlib PATHS ${myExtLibsPrefix}/zlib/build/Release)
+#target_link_libraries(${PLUGIN_NAME} PRIVATE ${FOUND_LIB_ZLIB})
+target_link_libraries(${PLUGIN_NAME} PRIVATE ${myExtLibsPrefix}/zlib/build/Release/zlib.lib)
+
+# add 'zip.lib'
+#find_library(FOUND_LIB_ZIP zip PATHS ${myExtLibsPrefix}/libzip/build/lib/Release)
+#target_link_libraries(${PLUGIN_NAME} PRIVATE ${FOUND_LIB_ZIP})
+target_link_libraries(${PLUGIN_NAME} PRIVATE ${myExtLibsPrefix}/libzip/build/lib/Release/zip.lib)
+#]]
+
+
+# List of absolute paths to libraries that should be bundled with the plugin.
+# This list could contain prebuilt libraries, or libraries created by an
+# external build triggered from this build file.
+set(native_zip_bundled_libraries
+  # Defined in ../src/CMakeLists.txt.
+  # This can be changed to accommodate different builds.
+  $<TARGET_FILE:native_zip>
+
+  ${ZLIB_BINRARY_DIR}/zlib.dll  # Jacky, copy dll to exe dir
+  ${LIBZIP_BINRARY_DIR}/zip.dll # Jacky, copy dll to exe dir
+
+  PARENT_SCOPE
+)
