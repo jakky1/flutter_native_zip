@@ -29,6 +29,16 @@ Or generate Android App Bundle (.aab) for uploading Google Play:
 flutter build appbundle --target-platform android-arm64
 ```
 
+## For Linux platform
+
+In Ubuntu Linux (for example), the following packages need to be installed during development:
+```
+sudo apt install libzip-dev
+sudo apt install zipcmp
+sudo apt install zipmerge
+sudo apt install ziptool
+```
+
 # Feature list
 - Compress a folder into a .zip file
 - Extract files from a .zip archive

@@ -22,9 +22,8 @@ dev_dependencies:
 
 topics:
   - zip
-  - gzip
   - archive
-  - compress
+  - compression
   - multi-thread
   - native
   - ffi  
