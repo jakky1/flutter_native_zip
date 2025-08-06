@@ -4,21 +4,24 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'native_zip'
-  s.version          = '0.0.1'
-  s.summary          = 'A new Flutter FFI plugin project.'
+  s.version          = '0.8.0'
+  s.summary          = 'A Flutter FFI plugin for fast, easy-to-use, multi-threaded ZIP file operations.'
   s.description      = <<-DESC
-A new Flutter FFI plugin project.
+A Flutter FFI plugin for fast, easy-to-use, multi-threaded ZIP file operations.
                        DESC
-  s.homepage         = 'http://example.com'
+  s.homepage         = 'https://github.com/jakky1/flutter_native_zip'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Your Company' => 'email@example.com' }
+  s.author           = { 'jakky1' => 'jakky1@gmail.com' }
 
   # This will ensure the source files in Classes/ are included in the native
   # builds of apps using this FFI plugin. Podspec does not support relative
   # paths, so Classes contains a forwarder C file that relatively imports
   # `../src/*` so that the C sources can be shared among all target platforms.
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  #s.source_files = 'Classes/**/*'
+  s.source_files  = "../src/*.c", "../src/*.h"
+  s.libraries     = 'z', 'zip'
+
   s.dependency 'Flutter'
   s.platform = :ios, '12.0'
 
