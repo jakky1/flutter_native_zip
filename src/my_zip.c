@@ -1,3 +1,34 @@
+/*
+BSD 3-Clause License
+
+Copyright 2025, jakky1 (jakky1@gmail.com)
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+      copyright notice, this list of conditions and the following
+      disclaimer in the documentation and/or other materials provided
+      with the distribution.
+    * Neither the name of Google Inc. nor the names of its
+      contributors may be used to endorse or promote products derived
+      from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 #include "my_zip.h"
 #include "my_file.h"
 #include "my_utils.h"
@@ -49,42 +80,6 @@ FFI_PLUGIN_EXPORT int closeZip(void* zip) {
 FFI_PLUGIN_EXPORT void discardZip(void* zip) {
     zip_discard((zip_t*)zip);
 }
-
-/* in dart:
-class MyZipEntry extends Struct {
-  @Int32()
-  external int index;
-
-  external Pointer<Utf8> path;
-
-  @Uint64()
-  external int originalSize;
-
-  @Uint64()
-  external int compressedSize;
-
-  @Int64()
-  external int modifiedTime;
-}
-
-final Pointer<Int32> lenPtr = calloc<Int32>();
-final Pointer<MyStruct> arrayPtr = getZipEntries(lenPtr);
-final int len = lenPtr.value;
-
-final List<MyStruct> structList = List.generate(
-  len,
-  (i) => arrayPtr.elementAt(i).ref,
-);
-
-calloc.free(lenPtr);
-
-
-Pointer<MyStruct> ptr = ...;
-String dartName = ptr.ref.name.toDartString();
-
-// TODO: free arrayPtr ...
-// TODO: free struct.path ...
-*/
 
 FFI_PLUGIN_EXPORT void nativeFree(void* p) {
     free(p);
@@ -174,9 +169,8 @@ int my_zip_get_error(zip_t* zip) {
 
 int my_zip_close(zip_t* zip) {
     // if zip_close() fails, get the real error code, and call zip_discard()
-#ifdef LOG_ZIP_OPEN_CLOSE
-    notifyDartLog("######## zip_close() called");
-#endif
+
+    //notifyDartLog("######## zip_close() called");
     int err = zip_close(zip);
     if (err) {
         zip_error_t* error = zip_get_error(zip);
@@ -187,10 +181,10 @@ int my_zip_close(zip_t* zip) {
 }
 
 zip_t* __zip_open(const char* path, int flags, int* errorp) {
-    notifyDartLog("######## zip_open() called");
+    //notifyDartLog("######## zip_open() called");
     return zip_open(path, flags, errorp);
 }
 void __zip_discard(zip_t* zip) {
-    notifyDartLog("######## zip_discard() called"); \
+    //notifyDartLog("######## zip_discard() called"); \
     zip_discard(zip);
 }
