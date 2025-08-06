@@ -195,7 +195,7 @@ final class ZipFile {
 
     if (threadCount < 1 || threadCount > Platform.numberOfProcessors) {
       if (Platform.isAndroid || Platform.isIOS) {
-        threadCount = (Platform.numberOfProcessors / 2) as int;
+        threadCount = (Platform.numberOfProcessors / 2).toInt();
       } else {
         threadCount = Platform.numberOfProcessors;
       }
@@ -287,7 +287,7 @@ final class ZipFile {
 
     if (threadCount < 1 || threadCount > Platform.numberOfProcessors) {
       if (Platform.isAndroid || Platform.isIOS) {
-        threadCount = (Platform.numberOfProcessors / 2) as int;
+        threadCount = (Platform.numberOfProcessors / 2).toInt();
       } else {
         threadCount = Platform.numberOfProcessors;
       }
