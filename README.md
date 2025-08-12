@@ -342,6 +342,6 @@ future.cancel();
 ## Limitations
 
 - Due to the limitation of zip format, the following information are ignored whe zipping and unzipping, and we won't support it:
-  - All <u>symbolic link</u> files or directories are ignored.
+  - All symbolic link files or directories are ignored.
   - The inode information of a hard link file are ignored.
   - Unix file permission information (e.g. -rwxrw-r--) are ignored
