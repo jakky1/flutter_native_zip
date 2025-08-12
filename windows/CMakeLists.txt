@@ -15,9 +15,9 @@ add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/../src" "${CMAKE_CURRENT_BINARY_DI
 
 
 
-set(PKGNAME native_zip_libs_windows_v1)
+set(PKGNAME native_zip_libs_windows_min_v1)
 set(myExtLibsPrefix ${CMAKE_BINARY_DIR}/packages_src)
-set(URL_PREBUILT_LIBS "https://github.com/jakky1/jk_custom_appbar/releases/download/screenshot/${PKGNAME}.tar.gz")
+set(URL_PREBUILT_LIBS "https://github.com/jakky1/flutter_native_zip/releases/download/v1/${PKGNAME}.tar.gz")
 set(ZIP_FILE_PREBUILT_LIBS ${myExtLibsPrefix}/${PKGNAME}.tar.gz)
 set(DIR_PREBUILT_LIBS ${myExtLibsPrefix}/${PKGNAME})
 
