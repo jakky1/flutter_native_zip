@@ -15,7 +15,6 @@ In theory, this package should be able to run on both iOS and macOS. Since I hav
 
 ## For Android platform
 
-<details>
 In Android platform, we ONLY support the following ABI:
 - `arm64-v8a`: for 64-bit ARM CPU
 - `x86_64`: for Android emulator on 64-bit Windows
@@ -29,11 +28,9 @@ Or generate Android App Bundle (.aab) for uploading Google Play:
 ```
 flutter build appbundle --target-platform android-arm64
 ```
-</details>
 
 ## For Linux platform
 
-<details>
 In Ubuntu Linux (for example), the following packages need to be installed during development:
 ```
 sudo apt install libzip-dev
@@ -41,7 +38,6 @@ sudo apt install zipcmp
 sudo apt install zipmerge
 sudo apt install ziptool
 ```
-</details>
 
 # Feature list
 - Compress a folder into a .zip file
