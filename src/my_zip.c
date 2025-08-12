@@ -185,6 +185,6 @@ zip_t* __zip_open(const char* path, int flags, int* errorp) {
     return zip_open(path, flags, errorp);
 }
 void __zip_discard(zip_t* zip) {
-    //notifyDartLog("######## zip_discard() called"); \
+    //notifyDartLog("######## zip_discard() called");
     zip_discard(zip);
 }
