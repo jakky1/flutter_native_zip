@@ -46,6 +46,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <zconf.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <limits.h>
 
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 
