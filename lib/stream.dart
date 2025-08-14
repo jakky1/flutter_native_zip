@@ -49,7 +49,6 @@ class _NativeZipStreamSink implements EventSink<List<int>> {
   ) {
     if (zipAction == 1) {
       pStream = _bindings.openZipStream(windowsBits, level);
-      //pStream = _bindings.openZipStream(windowsBits, 0); // TODO: test no zip
     } else {
       pStream = _bindings.openUnzipStream(windowsBits);
     }

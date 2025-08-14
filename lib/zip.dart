@@ -41,7 +41,6 @@ final class ZipFile {
   late Pointer<Void> _pZip;
 
   int _readWriteCount = 0; // if read op +1 , if write op -1
-  bool _isWriting = false;
   bool _isClosed = false;
 
   ZipFile._(this._zipFilePath, this._password) {
@@ -383,8 +382,8 @@ final class ZipFile {
       _reopen(); // because zip_close() called when saving changes in .zip, so we reopen zip file here
       _readWriteCount++;
 
-      if (s1 != null) malloc.free(s1!);
-      if (s2 != null) malloc.free(s2!);
+      if (s1 != null) malloc.free(s1);
+      if (s2 != null) malloc.free(s2);
       if (nativeArr != null) {
         for (int i = 0; i < count; i++) {
           malloc.free(nativeArr[i++]);
@@ -452,7 +451,7 @@ final class ZipFile {
   ///
   /// [newEntryBaseDirPath] must ends with '/', or be empty string "" (which represents root directory)
   ///
-  /// Example: moveEntries(<String>["prefix/dirA/"], "prefix/dirB/") move whole 'dirA' as 'prefix/dirB/dirA/'
+  /// Example: moveEntries(&lt;String&gt;["prefix/dirA/"], "prefix/dirB/") move whole 'dirA' as 'prefix/dirB/dirA/'
   ///
   Future<void> moveEntries(
       List<String> entryPathList, String newEntryBaseDirPath) {
@@ -476,7 +475,7 @@ final class ZipFile {
 
   /// remove entries in [entryPathList]
   ///
-  /// Example: removeEntries(<String>["prefix/dirA/"]) remove whole directory 'prefix/dirA/' recursively
+  /// Example: removeEntries(&lt;String&gt;["prefix/dirA/"]) remove whole directory 'prefix/dirA/' recursively
   Future<void> removeEntries(List<String> entryPathList) {
     _checkEntryPathList(entryPathList);
 

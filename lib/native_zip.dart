@@ -7,7 +7,6 @@ import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
 import 'package:ffi/ffi.dart';
-import 'package:flutter/material.dart';
 import 'native_zip_bindings_generated.dart';
 
 part 'exception.dart';
@@ -23,7 +22,7 @@ typedef _wrappedPrint_C = Void Function(Pointer<Char> a);
 final wrappedPrintPointer = Pointer.fromFunction<_wrappedPrint_C>(dartPrint);
 void dartPrint(Pointer<Char> arg) {
   var str = arg.cast<Utf8>().toDartString();
-  print("[FFI] $str");
+  log("[FFI] $str");
 }
 
 void initDartLog() {
@@ -87,11 +86,14 @@ final class NativeZip {
   /// [compressLevel] parameter must be between 0 and 9. 0 means no compression, 1 means fast compression but low compression ratio, and 9 means the slowest compression but the highest compression ratio. Default is 5
   ///
   /// [threadCount] default set to [Platform.numberOfProcessors]. In other words, use 100% of CPU
-  static ZipTaskFuture zipDir(String dirPath, String zipPath,
-      {String? password,
-      int compressLevel = 5,
-      bool skipTopLevel = false,
-      int threadCount = 0}) {
+  static ZipTaskFuture zipDir(
+    String dirPath,
+    String zipPath, {
+    String? password,
+    int compressLevel = 5,
+    bool skipTopLevel = false,
+    int threadCount = 0,
+  }) {
     if (_isFileExists(zipPath)) {
       throw ZipFileCreateException("Zip file already exists: $zipPath");
     }
@@ -100,10 +102,13 @@ final class NativeZip {
     }
 
     var zip = openZipFile(zipPath, password: password);
-    var future = zip.addFile(dirPath, "",
-        compressLevel: compressLevel,
-        skipTopLevel: skipTopLevel,
-        threadCount: threadCount);
+    var future = zip.addFile(
+      dirPath,
+      "",
+      compressLevel: compressLevel,
+      skipTopLevel: skipTopLevel,
+      threadCount: threadCount,
+    );
     future.whenComplete(() => zip.close());
     return future;
   }
@@ -115,8 +120,12 @@ final class NativeZip {
   /// [dirPath] is directory path where you store the extracted .zip file.
   ///
   /// [threadCount] default set to [Platform.numberOfProcessors]. In other words, use 100% of CPU
-  static ZipTaskFuture unzipToDir(String zipPath, String dirPath,
-      {String? password, int threadCount = 0}) {
+  static ZipTaskFuture unzipToDir(
+    String zipPath,
+    String dirPath, {
+    String? password,
+    int threadCount = 0,
+  }) {
     if (!_isFileExists(zipPath)) {
       throw ZipFileOpenException("Zip file not exists: $zipPath");
     }

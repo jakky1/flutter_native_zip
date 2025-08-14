@@ -70,12 +70,6 @@ Exception _getExceptionByErrorCode(int err) {
   return ZipException(err, message: msg);
 }
 
-void _throwByErrorCode(int err) {
-  var exp = _getExceptionByErrorCode(err);
-  if (exp == null) return;
-  throw exp;
-}
-
 // error code mapping to error message
 final _errorMessageMap = <int, String>{
   // my error code
