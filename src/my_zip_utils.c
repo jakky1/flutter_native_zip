@@ -414,6 +414,8 @@ int zipDir(_my_zip_task *task, void *_zip, const char** dirPathList, int dirPath
     for (int i = 0; i < dirPathListCount; i++) {
         const char* path = dirPathList[i];
         if (*path == '\0' || path[strlen(path) - 1] == DIR_SEPARATOR) return ERR_NZ_INVALID_PATH;
+        _my_file_path_separator_fix((char*)path);
+
         err = my_dir_traversal(path, entryDirPathBase, skipTopLevel, _zipDir_traversal_onFileFound, task);
         if (err != 0 || task->isCancelled) {
             // cleanup
