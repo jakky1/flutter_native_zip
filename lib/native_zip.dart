@@ -2,10 +2,12 @@ library;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:ffi';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'native_zip_bindings_generated.dart';
 
@@ -44,20 +46,20 @@ final class NativeZip {
   /// [level] range: (1, 9)
   /// level==1 : fast, low compression
   /// level==9 : slow, max compression
-  static ListIntStreamTransformer gzipWithLevel([int level = -1]) =>
-      _NativeZipStreamTransformer(1, _TYPE_GZIP, level);
-  static const gzip = _NativeZipStreamTransformer(1, _TYPE_GZIP);
-  static const gunzip = _NativeZipStreamTransformer(0, _TYPE_DECOMPRESS_GZIP);
+  static ZipStreamConverter gzipWithLevel([int level = -1]) =>
+      ZipStreamConverter._(1, _TYPE_GZIP, level);
+  static const gzip = ZipStreamConverter._(1, _TYPE_GZIP);
+  static const gunzip = ZipStreamConverter._(0, _TYPE_DECOMPRESS_GZIP);
 
-  static ListIntStreamTransformer zlibWithLevel([int level = -1]) =>
-      _NativeZipStreamTransformer(1, _TYPE_ZLIB, level);
-  static const zlib = _NativeZipStreamTransformer(1, _TYPE_ZLIB);
-  static const unzlib = _NativeZipStreamTransformer(0, _TYPE_DECOMPRESS_GZIP);
+  static ZipStreamConverter zlibWithLevel([int level = -1]) =>
+      ZipStreamConverter._(1, _TYPE_ZLIB, level);
+  static const zlib = ZipStreamConverter._(1, _TYPE_ZLIB);
+  static const unzlib = ZipStreamConverter._(0, _TYPE_DECOMPRESS_GZIP);
 
-  static ListIntStreamTransformer deflateWithLevel([int level = -1]) =>
-      _NativeZipStreamTransformer(1, _TYPE_DEFLATE, level);
-  static const deflate = _NativeZipStreamTransformer(1, _TYPE_DEFLATE);
-  static const inflate = _NativeZipStreamTransformer(0, _TYPE_DEFLATE);
+  static ZipStreamConverter deflateWithLevel([int level = -1]) =>
+      ZipStreamConverter._(1, _TYPE_DEFLATE, level);
+  static const deflate = ZipStreamConverter._(1, _TYPE_DEFLATE);
+  static const inflate = ZipStreamConverter._(0, _TYPE_DEFLATE);
 
   //
 

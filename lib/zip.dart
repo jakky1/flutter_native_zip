@@ -99,14 +99,13 @@ final class ZipFile {
       recursive ? 1 : 0,
     );
 
-    calloc.free(lenPtr);
-    malloc.free(nativePath);
-
     final structList = List.generate(
       lenPtr.value,
       (i) => ZipEntryInfo._(this, nativePtr[i]),
     );
 
+    calloc.free(lenPtr);
+    malloc.free(nativePath);
     _bindings.nativeFree(nativePtr.cast<Void>());
     return structList;
   }

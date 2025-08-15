@@ -1,21 +1,18 @@
 part of 'native_zip.dart';
 
-typedef ListIntStreamTransformer = StreamTransformer<List<int>, List<int>>;
-
-class _NativeZipStreamTransformer
-    extends StreamTransformerBase<List<int>, List<int>> {
+class ZipStreamConverter extends Converter<List<int>, List<int>> {
   final int zipAction;
   final int windowsBits;
   final int level; // -1:default, 0:no_compression, 1:fast, 9:best_compression
 
-  const _NativeZipStreamTransformer(
+  const ZipStreamConverter._(
     this.zipAction, [
     this.windowsBits = 8,
     this.level = -1,
   ]);
 
   @override
-  Stream<List<int>> bind(Stream<List<int>> stream) {
+  Sink<List<int>> startChunkedConversion(Sink<List<int>> sink) {
     if (level < -1 || level > 9 || level == 0) {
       throw ZipStreamException(
         -99,
@@ -23,23 +20,39 @@ class _NativeZipStreamTransformer
       );
     }
 
-    return Stream<List<int>>.eventTransformed(
-      stream,
-      (sink) => _NativeZipStreamSink(zipAction, windowsBits, level, sink),
-    );
+    return _NativeZipStreamSink(zipAction, windowsBits, level, sink);
+  }
+
+  @override
+  List<int> convert(List<int> input) {
+    _BufferSink sink = _BufferSink();
+    startChunkedConversion(sink)
+      ..add(input)
+      ..close();
+    return sink.builder.takeBytes();
   }
 }
 
-class _NativeZipStreamSink implements EventSink<List<int>> {
+class _BufferSink extends ByteConversionSink {
+  final builder = BytesBuilder(copy: false);
+
+  @override
+  void add(List<int> chunk) => builder.add(chunk);
+
+  @override
+  void close() {}
+}
+
+class _NativeZipStreamSink extends ByteConversionSink {
   // zipAction: 1=>zip , 0=>unzip
   final int zipAction;
   final int windowsBits;
   final int level; // only works when compress
-  final EventSink<List<int>> sink;
+  final Sink<List<int>> sink;
   bool isEOF = false;
 
   late final Pointer<Void> pStream;
-  static const int outBufSize = 1024 * 2;
+  static const int outBufSize = 1024 * 64;
 
   _NativeZipStreamSink(
     this.zipAction,
@@ -66,12 +79,6 @@ class _NativeZipStreamSink implements EventSink<List<int>> {
   }
 
   @override
-  void addError(e, [st]) {
-    closeZipStream();
-    sink.addError(e, st);
-  }
-
-  @override
   void close() {
     closeZipStream();
     sink.close();
@@ -81,6 +88,8 @@ class _NativeZipStreamSink implements EventSink<List<int>> {
   void add(List<int> inBuf) {
     Pointer<Int8>? pInBuf; // native memory
     Pointer<Int8>? pOutBuf; // native memory
+
+    if (inBuf.isEmpty) return;
 
     try {
       pInBuf = malloc<Int8>(inBuf.length);
@@ -101,7 +110,7 @@ class _NativeZipStreamSink implements EventSink<List<int>> {
         sink.add(pOutBuf.asTypedList(outLen, finalizer: malloc.nativeFree));
         pOutBuf = null;
       } else if (outLen < 0) {
-        throw ZipStreamException(outLen);
+        _throwExceptionByErrCode(outLen);
       }
 
       while (outLen == outBufSize) {
@@ -118,7 +127,7 @@ class _NativeZipStreamSink implements EventSink<List<int>> {
           sink.add(pOutBuf.asTypedList(outLen, finalizer: malloc.nativeFree));
           pOutBuf = null;
         } else if (outLen < 0) {
-          throw ZipStreamException(outLen);
+          _throwExceptionByErrCode(outLen);
         }
       }
 
@@ -127,6 +136,29 @@ class _NativeZipStreamSink implements EventSink<List<int>> {
     } finally {
       if (pInBuf != null) malloc.free(pInBuf);
       if (pOutBuf != null) malloc.free(pOutBuf);
+    }
+  }
+
+  void _throwExceptionByErrCode(int errCode) {
+    switch (errCode) {
+      case 2: //Z_NEED_DICT
+        throw ZipStreamException(errCode,
+            message: "Z_NEED_DICT: need dictionary");
+      case -1: //Z_ERRNO
+        throw ZipStreamException(errCode, message: "Z_ERRNO: unknown error");
+      case -2: //Z_STREAM_ERROR
+        throw ZipStreamException(errCode,
+            message: "Z_STREAM_ERROR: wrong param or state");
+      case -3: //Z_DATA_ERROR
+        throw ZipStreamException(errCode, message: "Z_DATA_ERROR: data error");
+      case -4: //Z_MEM_ERROR
+        throw ZipStreamException(errCode,
+            message: "Z_MEM_ERROR: not enough memory");
+      case -5: //Z_BUF_ERROR
+        throw ZipStreamException(errCode, message: "Z_BUF_ERROR: buffer error");
+      case -6: //Z_VERSION_ERROR
+        throw ZipStreamException(errCode,
+            message: "ZipStreamException: zlib version incompatible");
     }
   }
 }
