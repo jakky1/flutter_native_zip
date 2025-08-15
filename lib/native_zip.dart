@@ -20,19 +20,6 @@ part 'task_notify.dart';
 
 // --------------------------------------------------------------------------
 
-typedef _wrappedPrint_C = Void Function(Pointer<Char> a);
-final wrappedPrintPointer = Pointer.fromFunction<_wrappedPrint_C>(dartPrint);
-void dartPrint(Pointer<Char> arg) {
-  var str = arg.cast<Utf8>().toDartString();
-  log("[FFI] $str");
-}
-
-void initDartLog() {
-  //_bindings.initDartPrint(wrappedPrintPointer);
-}
-
-// --------------------------------------------------------------------------
-
 final class NativeZip {
   // [windowsBits] values for different compression mode in zlib
   static const int _TYPE_GZIP = 31; // raw deflate, 16 + 8~15
