@@ -39,31 +39,25 @@ final class NativeZip {
 
   /// _TYPE_DECOMPRESS: auto detect zip(zlib)/gzip headers to decode,
   /// but cannot decode file which is encoded by 'deflate'
-  static const int _TYPE_DECOMPRESS_ZLIB_GZIP = 32 + 15; // 32 + 8~15
+  static const int _TYPE_DECOMPRESS_GZIP = 32 + 15; // 32 + 8~15
 
   /// [level] range: (1, 9)
   /// level==1 : fast, low compression
   /// level==9 : slow, max compression
   static ListIntStreamTransformer gzipWithLevel([int level = -1]) =>
       _NativeZipStreamTransformer(1, _TYPE_GZIP, level);
-  static ListIntStreamTransformer get gzip =>
-      const _NativeZipStreamTransformer(1, _TYPE_GZIP);
-  static ListIntStreamTransformer get gunzip =>
-      const _NativeZipStreamTransformer(0, _TYPE_DECOMPRESS_ZLIB_GZIP);
+  static const gzip = _NativeZipStreamTransformer(1, _TYPE_GZIP);
+  static const gunzip = _NativeZipStreamTransformer(0, _TYPE_DECOMPRESS_GZIP);
 
   static ListIntStreamTransformer zlibWithLevel([int level = -1]) =>
       _NativeZipStreamTransformer(1, _TYPE_ZLIB, level);
-  static ListIntStreamTransformer get zlib =>
-      const _NativeZipStreamTransformer(1, _TYPE_ZLIB);
-  static ListIntStreamTransformer get unzlib =>
-      const _NativeZipStreamTransformer(0, _TYPE_DECOMPRESS_ZLIB_GZIP);
+  static const zlib = _NativeZipStreamTransformer(1, _TYPE_ZLIB);
+  static const unzlib = _NativeZipStreamTransformer(0, _TYPE_DECOMPRESS_GZIP);
 
   static ListIntStreamTransformer deflateWithLevel([int level = -1]) =>
       _NativeZipStreamTransformer(1, _TYPE_DEFLATE, level);
-  static ListIntStreamTransformer get deflate =>
-      const _NativeZipStreamTransformer(1, _TYPE_DEFLATE);
-  static ListIntStreamTransformer get inflate =>
-      const _NativeZipStreamTransformer(0, _TYPE_DEFLATE);
+  static const deflate = _NativeZipStreamTransformer(1, _TYPE_DEFLATE);
+  static const inflate = _NativeZipStreamTransformer(0, _TYPE_DEFLATE);
 
   //
 
