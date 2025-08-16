@@ -56,7 +56,7 @@ When you compress an entire folder into a .zip file or extract files from a .zip
 Add this to your package's `pubspec.yaml` file:
 ```yaml
 dependencies:
-  native_zip:
+  native_zip: latest
 ```
 
 # Easy-to-use Functions
