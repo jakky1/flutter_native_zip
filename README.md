@@ -39,6 +39,13 @@ sudo apt install zipmerge
 sudo apt install ziptool
 ```
 
+## For MacOS platform
+
+Libzip needs to be installed during development:
+```
+brew install libzip
+```
+
 # Feature list
 - Compress a folder into a .zip file
 - Extract files from a .zip archive

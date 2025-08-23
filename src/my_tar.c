@@ -44,6 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define PREFIX_SIZE 155
 
 #define _round_up_to_512(v) ((v & (512 - 1)) == 0 ? v : (v | (512-1)) + 1)
+#define min(a,b) (((a) < (b)) ? (a) : (b))
 
 // in https://www.gnu.org/software/tar/manual/html_node/Standard.html :
 //   => The name, linkname, magic, uname, and gname are null-terminated character strings. All other fields are zero-filled octal numbers in ASCII.
