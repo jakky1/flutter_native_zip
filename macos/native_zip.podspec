@@ -32,7 +32,7 @@ A Flutter FFI plugin for fast, easy-to-use, multi-threaded ZIP file operations.'
   s.pod_target_xcconfig = { 
     'HEADER_SEARCH_PATHS' => '/usr/local/include /opt/homebrew/include',
     'LIBRARY_SEARCH_PATHS' => '/usr/local/lib /opt/homebrew/lib',
-    'OTHER_LDFLAGS' => '-lz -lzip',
+    'OTHER_LDFLAGS' => '-lz -lzip -lpthread',
     'DEFINES_MODULE' => 'YES'
   }
   s.swift_version = '5.0'
