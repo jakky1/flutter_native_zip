@@ -18,9 +18,7 @@ A Flutter FFI plugin for fast, easy-to-use, multi-threaded ZIP file operations.'
   # paths, so Classes contains a forwarder C file that relatively imports
   # `../src/*` so that the C sources can be shared among all target platforms.
   s.source           = { :path => '.' }
-  # s.source_files = 'Classes/**/*'
-  s.source_files  = "../src/*.c", "../src/*.h"
-  s.libraries     = 'z', 'zip'
+  s.source_files = 'Classes/**/*'
 
   # If your plugin requires a privacy manifest, for example if it collects user
   # data, update the PrivacyInfo.xcprivacy file to describe your plugin's
@@ -34,6 +32,7 @@ A Flutter FFI plugin for fast, easy-to-use, multi-threaded ZIP file operations.'
   s.pod_target_xcconfig = { 
     'HEADER_SEARCH_PATHS' => '/usr/local/include /opt/homebrew/include',
     'LIBRARY_SEARCH_PATHS' => '/usr/local/lib /opt/homebrew/lib',
+    'OTHER_LDFLAGS' => '-lz -lzip',
     'DEFINES_MODULE' => 'YES'
   }
   s.swift_version = '5.0'
