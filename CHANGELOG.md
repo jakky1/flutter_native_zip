@@ -1,4 +1,4 @@
-## 0.8.3
+## 0.8.4
 
 * Support macOS platform (Thanks to @dov-vai for the contribution in this [PR](https://github.com/jakky1/flutter_native_zip/pull/2))
 
