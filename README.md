@@ -5,9 +5,9 @@ Implemented in native C code, using well-known libraries [zlib](https://zlib.net
 
 ## Platform Support
 
-| Windows | Android | Linux | iOS | macOS | web
+| Windows | Android | Linux | macOS | iOS | web
 | :-----: | :-----: | :-----: | :-----: | :-----: | :-----: |
-|    &#x2705;  |    &#x2705;   |    &#x2705;   |    &#x274c;<br>Help<br>Wanted   | &#x274c;<br>Help<br>Wanted | &#x274c;<br>Never<br>support |
+|    &#x2705;  |    &#x2705;   |    &#x2705;   |   &#x2705;    | &#x274c;<br>Help<br>Wanted | &#x274c;<br>Never<br>support |
 
 ## For iOS & macOS platform ( Help Wanted )
 
