@@ -3,7 +3,7 @@ description: A FFI plugin for fast, easy-to-use, multi-threaded ZIP file operati
 homepage: https://github.com/jakky1/flutter_native_zip
 repository: https://github.com/jakky1/flutter_native_zip
 issue_tracker: https://github.com/jakky1/flutter_native_zip/issues
-version: 0.8.2
+version: 0.8.3
 
 environment:
   sdk: ^3.1.0

@@ -352,3 +352,9 @@ future.cancel();
   - All symbolic link files or directories are ignored.
   - The inode information of a hard link file are ignored.
   - Unix file permission information (e.g. -rwxrw-r--) are ignored
+
+# Other Packages by Me
+
+I also develop other Flutter packages that you might find interesting, although they are not related to this one:
+
+- [native_crypto](https://pub.dev/packages/native_crypto) : Fast encryption (AES), and MD5, SHA, HMAC cryptographic functions, using built-in system API, with hardware-acceleration (if OS and device support).
